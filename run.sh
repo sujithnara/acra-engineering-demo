@@ -21,7 +21,7 @@ acraengdemo_detect_os() {
                 fi
                 case "$os" in
                     (debian)
-#                        os_ver_name="${VERSION#*(}"
+                        os_ver_name="${VERSION#*(}"
                         os_ver_name="${os_ver_name%)}"
                         ;;
                     (ubuntu)
@@ -328,26 +328,11 @@ Resources that will become available after launch:
 
 acraengdemo_git_clone_acraengdemo() {
     COSSACKLABS_ACRAENGDEMO_VCS_URL='https://github.com/cossacklabs/acra-engineering-demo'
-    COSSACKLABS_ACRAENGDEMO_CURR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-    if ! git -C "$COSSACKLABS_ACRAENGDEMO_CURR_DIR" rev-parse --is-inside-work-tree 2> /dev/null; then
-            COSSACKLABS_ACRAENGDEMO_VCS_BRANCH=${COSSACKLABS_ACRAENGDEMO_VCS_BRANCH:-master}
-            acraengdemo_cmd \
-                "git clone --depth 1 -b $COSSACKLABS_ACRAENGDEMO_VCS_BRANCH $COSSACKLABS_ACRAENGDEMO_VCS_URL" \
-                "Cloning acra-engineering-demo"
-            COSSACKLABS_ACRAENGDEMO_VCS_REF=$(git -C ./acra-engineering-demo/ rev-parse --verify HEAD)
-
-    else
-        COSSACKLABS_CURR_REPO_VCS_URL="$(git config --get remote.origin.url)"
-        COSSACKLABS_CURR_REPO_VCS_URL="${COSSACKLABS_CURR_REPO_VCS_URL%.git}"
-        if [ "$COSSACKLABS_CURR_REPO_VCS_URL" == "$COSSACKLABS_ACRAENGDEMO_VCS_URL" ]; then
-            echo '
-Found acra-engineering-demo localy, skip downloading
-
-'
-            COSSACKLABS_ACRAENGDEMO_VCS_REF=$(git rev-parse --verify HEAD)
-            return 0
-        fi
-    fi
+    COSSACKLABS_ACRAENGDEMO_VCS_BRANCH=${COSSACKLABS_ACRAENGDEMO_VCS_BRANCH:-master}
+    acraengdemo_cmd \
+        "git clone --depth 1 -b $COSSACKLABS_ACRAENGDEMO_VCS_BRANCH $COSSACKLABS_ACRAENGDEMO_VCS_URL" \
+        "Cloning acra-engineering-demo"
+    COSSACKLABS_ACRAENGDEMO_VCS_REF=$(git -C ./acra-engineering-demo/ rev-parse --verify HEAD)
 }
 
 acraengdemo_run_compose() {

@@ -21,8 +21,9 @@ acraengdemo_detect_os() {
                 fi
                 case "$os" in
                     (debian)
-                        os_ver_name="${VERSION#*(}"
-                        os_ver_name="${os_ver_name%)}"
+#                        os_ver_name="${VERSION#*(}"
+#                        os_ver_name="${os_ver_name%)}"
+                        os_ver_name=stretch
                         ;;
                     (ubuntu)
                         if [[ "$VERSION_ID" == '14.04' ]]; then
@@ -74,7 +75,16 @@ acraengdemo_parse_args() {
         acraengdemo_help
         exit 0
     fi
+
     demo_project_name="$1"
+
+    if [[ $demo_project_name == "pgsql-"* ]]; then
+        demo_project_db="pgsql_"
+        demo_project_name="${demo_project_name#pgsql-}"
+    elif [[ $demo_project_name == "mysql-"* ]]; then
+        demo_project_db="mysql_"
+        demo_project_name="${demo_project_name#mysql-}"
+    fi
 }
 
 acraengdemo_check() {
@@ -107,7 +117,7 @@ acraengdemo_press_any_key() {
 }
 
 acraengdemo_info_django() {
-    local db_type="$1"
+    local db_type="${demo_project_db:-}"
 
     ETCHOSTS_PREFIX=''
     if [ "$(uname)" == 'Darwin' ]; then
@@ -152,9 +162,9 @@ Resources that will become available after launch:
         http://www.djangoproject.example:16686
 '
 
-    if [ "$db_type" == 'pgsql' ]; then
+    if [ "$db_type" == 'pgsql_' ]; then
         acraengdemo_info_pgsql-location
-    elif [ "$db_type" == 'mysql' ]; then
+    elif [ "$db_type" == 'mysql_' ]; then
         acraengdemo_info_mysql-location
     else
         acraengdemo_raise "Unknown DB type"
@@ -184,13 +194,8 @@ acraengdemo_info_mysql-location(){
 '
 }
 
-
-acraengdemo_info_pgsql-django-transparent() {
-    acraengdemo_info_django 'pgsql'
-}
-
-acraengdemo_info_mysql-django-transparent() {
-    acraengdemo_info_django 'mysql'
+acraengdemo_info_django-transparent() {
+    acraengdemo_info_django
 }
 
 acraengdemo_info_python() {
@@ -336,7 +341,7 @@ acraengdemo_git_clone_acraengdemo() {
 }
 
 acraengdemo_run_compose() {
-    DC_FILE="acra-engineering-demo/$demo_project_name/docker-compose.$demo_project_name.yml"
+    DC_FILE="acra-engineering-demo/$demo_project_name/docker-compose.${demo_project_db:-}${demo_project_name}.yml"
 
     acraengdemo_add_cleanup_cmd \
         'docker image prune --all --force --filter "label=com.cossacklabs.product.name=acra-engdemo"' \
@@ -370,25 +375,7 @@ acraengdemo_launch_project_django() {
     acraengdemo_run_compose
 }
 
-acraengdemo_launch_project_pgsql-django-transparent() {
-    acraengdemo_git_clone_acraengdemo
-
-    COSSACKLABS_DJANGO_VCS_URL='https://github.com/django/djangoproject.com'
-    COSSACKLABS_DJANGO_VCS_BRANCH=${COSSACKLABS_DJANGO_VCS_BRANCH:-master}
-    COSSACKLABS_DJANGO_VCS_REF='60753aa0013f67eb4aa42a1aca1451d0ac9dab81'
-
-    COMPOSE_ENV_VARS="COSSACKLABS_ACRAENGDEMO_VCS_URL=\"$COSSACKLABS_ACRAENGDEMO_VCS_URL\" "\
-"COSSACKLABS_ACRAENGDEMO_VCS_BRANCH=\"$COSSACKLABS_ACRAENGDEMO_VCS_BRANCH\" "\
-"COSSACKLABS_ACRAENGDEMO_VCS_REF=\"$COSSACKLABS_ACRAENGDEMO_VCS_REF\" "\
-"COSSACKLABS_DJANGO_VCS_URL=\"$COSSACKLABS_DJANGO_VCS_URL\" "\
-"COSSACKLABS_DJANGO_VCS_BRANCH=\"$COSSACKLABS_DJANGO_VCS_BRANCH\" "\
-"COSSACKLABS_DJANGO_VCS_REF=\"$COSSACKLABS_DJANGO_VCS_REF\" "\
-"COSSACKLABS_ACRAENGDEMO_BUILD_DATE=\"$(date -u +'%Y-%m-%dT%H:%M:%SZ')\""
-
-    acraengdemo_run_compose
-}
-
-acraengdemo_launch_project_mysql-django-transparent() {
+acraengdemo_launch_project_django-transparent() {
     acraengdemo_git_clone_acraengdemo
 
     COSSACKLABS_DJANGO_VCS_URL='https://github.com/django/djangoproject.com'
@@ -512,7 +499,7 @@ acraengdemo_post() {
 }
 
 acraengdemo_init() {
-    PROJECTS_SUPPORTED=( django pgsql-django-transparent mysql-django-transparent python rails timescaledb )
+    PROJECTS_SUPPORTED=( django django-transparent django-transparent python rails timescaledb )
 }
 
 acraengdemo_run() {

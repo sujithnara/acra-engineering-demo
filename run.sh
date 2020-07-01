@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
-
+set -x
 acraengdemo_raise() {
     echo -e "\\nERROR: $*\\n" >&2
     exit 1
@@ -21,7 +21,7 @@ acraengdemo_detect_os() {
                 fi
                 case "$os" in
                     (debian)
-                        os_ver_name="${VERSION#*(}"
+#                        os_ver_name="${VERSION#*(}"
                         os_ver_name="${os_ver_name%)}"
                         ;;
                     (ubuntu)
@@ -107,10 +107,13 @@ acraengdemo_press_any_key() {
 }
 
 acraengdemo_info_django() {
+    local db_type="$1"
+
     ETCHOSTS_PREFIX=''
     if [ "$(uname)" == 'Darwin' ]; then
         ETCHOSTS_PREFIX='/private'
     fi
+
     echo "
 Please do not forget to add a temporary entry to the hosts file:
 
@@ -132,10 +135,6 @@ Resources that will become available after launch:
         http://www.djangoproject.example:8008
         Default user/password: test@test.test/test
 
-    * PostgreSQL - also you can connect to DB directly:
-        postgresql://www.djangoproject.example:5432
-        Default admin user/password: postgres/test
-
     * Prometheus - examine the collected metrics:
         http://www.djangoproject.example:9090
 
@@ -151,14 +150,47 @@ Resources that will become available after launch:
 
     * Jaeger - view traces:
         http://www.djangoproject.example:16686
-
-
 '
+
+    if [ "$db_type" == 'pgsql' ]; then
+        acraengdemo_info_pgsql-location
+    elif [ "$db_type" == 'mysql' ]; then
+        acraengdemo_info_mysql-location
+    else
+        acraengdemo_raise "Unknown DB type"
+    fi
+
     acraengdemo_press_any_key
 }
 
-acraengdemo_info_django-transparent() {
-    acraengdemo_info_django
+
+acraengdemo_info_pgsql-location(){
+    echo '
+    * PostgreSQL - also you can connect to DB directly:
+        postgresql://www.djangoproject.example:5432
+        Default admin user/password: postgres/test
+
+
+'
+}
+
+acraengdemo_info_mysql-location(){
+    echo '
+    * MySQL - also you can connect to DB directly:
+        mysql -h www.djangoproject.example -p
+        Default admin user/password: test/test
+
+
+'
+}
+
+
+acraengdemo_info_pgsql-django-transparent() {
+    acraengdemo_info_django 'pgsql'
+}
+
+acraengdemo_info_mysql-django-transparent() {
+    acraengdemo_info_django 'mysql'
 }
 
 acraengdemo_info_python() {
@@ -296,11 +328,26 @@ Resources that will become available after launch:
 
 acraengdemo_git_clone_acraengdemo() {
     COSSACKLABS_ACRAENGDEMO_VCS_URL='https://github.com/cossacklabs/acra-engineering-demo'
-    COSSACKLABS_ACRAENGDEMO_VCS_BRANCH=${COSSACKLABS_ACRAENGDEMO_VCS_BRANCH:-master}
-    acraengdemo_cmd \
-        "git clone --depth 1 -b $COSSACKLABS_ACRAENGDEMO_VCS_BRANCH $COSSACKLABS_ACRAENGDEMO_VCS_URL" \
-        "Cloning acra-engineering-demo"
-    COSSACKLABS_ACRAENGDEMO_VCS_REF=$(git -C ./acra-engineering-demo/ rev-parse --verify HEAD)
+    COSSACKLABS_ACRAENGDEMO_CURR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+    if ! git -C "$COSSACKLABS_ACRAENGDEMO_CURR_DIR" rev-parse --is-inside-work-tree 2> /dev/null; then
+            COSSACKLABS_ACRAENGDEMO_VCS_BRANCH=${COSSACKLABS_ACRAENGDEMO_VCS_BRANCH:-master}
+            acraengdemo_cmd \
+                "git clone --depth 1 -b $COSSACKLABS_ACRAENGDEMO_VCS_BRANCH $COSSACKLABS_ACRAENGDEMO_VCS_URL" \
+                "Cloning acra-engineering-demo"
+            COSSACKLABS_ACRAENGDEMO_VCS_REF=$(git -C ./acra-engineering-demo/ rev-parse --verify HEAD)
+
+    else
+        COSSACKLABS_CURR_REPO_VCS_URL="$(git config --get remote.origin.url)"
+        COSSACKLABS_CURR_REPO_VCS_URL="${COSSACKLABS_CURR_REPO_VCS_URL%.git}"
+        if [ "$COSSACKLABS_CURR_REPO_VCS_URL" == "$COSSACKLABS_ACRAENGDEMO_VCS_URL" ]; then
+            echo '
+Found acra-engineering-demo localy, skip downloading
+
+'
+            COSSACKLABS_ACRAENGDEMO_VCS_REF=$(git rev-parse --verify HEAD)
+            return 0
+        fi
+    fi
 }
 
 acraengdemo_run_compose() {
@@ -338,7 +385,25 @@ acraengdemo_launch_project_django() {
     acraengdemo_run_compose
 }
 
-acraengdemo_launch_project_django-transparent() {
+acraengdemo_launch_project_pgsql-django-transparent() {
+    acraengdemo_git_clone_acraengdemo
+
+    COSSACKLABS_DJANGO_VCS_URL='https://github.com/django/djangoproject.com'
+    COSSACKLABS_DJANGO_VCS_BRANCH=${COSSACKLABS_DJANGO_VCS_BRANCH:-master}
+    COSSACKLABS_DJANGO_VCS_REF='60753aa0013f67eb4aa42a1aca1451d0ac9dab81'
+
+    COMPOSE_ENV_VARS="COSSACKLABS_ACRAENGDEMO_VCS_URL=\"$COSSACKLABS_ACRAENGDEMO_VCS_URL\" "\
+"COSSACKLABS_ACRAENGDEMO_VCS_BRANCH=\"$COSSACKLABS_ACRAENGDEMO_VCS_BRANCH\" "\
+"COSSACKLABS_ACRAENGDEMO_VCS_REF=\"$COSSACKLABS_ACRAENGDEMO_VCS_REF\" "\
+"COSSACKLABS_DJANGO_VCS_URL=\"$COSSACKLABS_DJANGO_VCS_URL\" "\
+"COSSACKLABS_DJANGO_VCS_BRANCH=\"$COSSACKLABS_DJANGO_VCS_BRANCH\" "\
+"COSSACKLABS_DJANGO_VCS_REF=\"$COSSACKLABS_DJANGO_VCS_REF\" "\
+"COSSACKLABS_ACRAENGDEMO_BUILD_DATE=\"$(date -u +'%Y-%m-%dT%H:%M:%SZ')\""
+
+    acraengdemo_run_compose
+}
+
+acraengdemo_launch_project_mysql-django-transparent() {
     acraengdemo_git_clone_acraengdemo
 
     COSSACKLABS_DJANGO_VCS_URL='https://github.com/django/djangoproject.com'
@@ -462,7 +527,7 @@ acraengdemo_post() {
 }
 
 acraengdemo_init() {
-    PROJECTS_SUPPORTED=( django django-transparent python rails timescaledb )
+    PROJECTS_SUPPORTED=( django pgsql-django-transparent mysql-django-transparent python rails timescaledb )
 }
 
 acraengdemo_run() {

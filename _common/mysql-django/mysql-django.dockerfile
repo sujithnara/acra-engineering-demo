@@ -1,4 +1,4 @@
-FROM mariadb:10.3
+FROM mariadb:latest
 
 # Product version
 ARG VERSION
@@ -29,4 +29,7 @@ LABEL org.label-schema.schema-version="1.0" \
     com.cossacklabs.docker.container.build-date=$BUILD_DATE \
     com.cossacklabs.docker.container.type="product"
 
-# COPY _common/mysql-django/mysql-django-configure.sh /docker-entrypoint-initdb.d/
+COPY mysql-django-configure.sh /docker-entrypoint-initdb.d/
+
+RUN chmod +x /docker-entrypoint-initdb.d/mysql-django-configure.sh
+

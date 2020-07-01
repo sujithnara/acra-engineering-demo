@@ -1,0 +1,20 @@
+--- common.py
++++ common.py.patch
+@@ -30,7 +30,7 @@
+
+ DATABASES = {
+     'default': {
+-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
++        'ENGINE': 'django.db.backends.mysql',
+         'NAME': 'djangoproject',
+         'USER': 'djangoproject',
+         'HOST': SECRETS.get('db_host', ''),
+@@ -41,7 +41,7 @@
+         },
+     },
+     'trac': {
+-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
++        'ENGINE': 'django.db.backends.mysql',
+         'NAME': 'code.djangoproject',
+         'USER': 'code.djangoproject',
+         'HOST': SECRETS.get('trac_db_host', ''),

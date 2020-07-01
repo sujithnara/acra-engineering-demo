@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
-set -x
+
 acraengdemo_raise() {
     echo -e "\\nERROR: $*\\n" >&2
     exit 1
@@ -351,6 +351,7 @@ acraengdemo_run_compose() {
     acraengdemo_add_cleanup_cmd \
         "docker-compose -f $PROJECT_DIR/$DC_FILE down" \
         'stop docker-compose'
+    acraengdemo_cmd "$COMPOSE_ENV_VARS docker-compose -f $DC_FILE build" 'Building docker-compose'
     acraengdemo_cmd "$COMPOSE_ENV_VARS docker-compose -f $DC_FILE up" 'Starting docker-compose'
 }
 

@@ -1,0 +1,35 @@
+version: "3"
+
+services:
+    mysql:
+        # Build and run the container based on the official mysql image
+        # with an additional configuration in accordance with djangoproject
+        # requirements
+        build:
+            context: ../_common/mysql-django/
+            dockerfile: mysql-django.dockerfile
+        # INSECURE!!! You MUST define your own DB name and credentials
+        environment:
+            MYSQL_ONETIME_PASSWORD: ${MYSQL_ONETIME_PASSWORD:-urLK7YJPndDWsnJC}
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-hy53uBLmBuihUK29}
+            # Same password for both django accounts:
+            # 'djangoproject' and 'code.djangoproject'
+            # (see mysql-django-configure.sh)
+            MYSQL_DATABASE: ${MYSQL_DATABASE:-test}
+            MYSQL_USER: ${MYSQL_USER:-test}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD:-test}
+            MYSQL_DJANGO_PASSWORD: ${MYSQL_DJANGO_PASSWORD:-r8d8iS3mDAYF}
+        # Open the port outside for demonstration purposes only (connections
+        # between containers are performing within isolated networks)
+        ports:
+            - "3306:3306"
+        volumes:
+            - log:/log
+        # We use internal 'server-mysql' network for AcraServer and
+        # DB interconnection, 'phpmyadmin-mysql' for interconnections
+        # with web interface and external network 'world' for port exposing
+        # networks:
+        #     - server-mysql
+        #     - phpmyadmin-mysql
+        #     - django-mysql
+        #     - world

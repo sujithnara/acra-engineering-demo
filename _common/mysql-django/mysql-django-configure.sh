@@ -1,27 +1,29 @@
 #!/usr/bin/env bash
+echo loggg2 > /log
 
 set -Eeuo pipefail
+set -x
 
-set_pg_option() {
-    local PG_CONFFILE="$1"
-    local OPTION="$2"
-    local VALUE="$3"
-    if grep -q "$OPTION" "$PG_CONFFILE"; then
-        sed -i "s/^#*${OPTION}\\s*=.*/${OPTION} = ${VALUE}/g" "$PG_CONFFILE"
-    else
-        echo "${OPTION} = ${VALUE}" >> "$PG_CONFFILE"
-    fi
-}
+# echo 'AAAAAAAAAAAAAAAAAAAAAAAa'
 
-set_pg_option "$PGDATA/postgresql.conf" log_statement all
+# set_mysql_option() {
+#     local CONFFILE="$1"
+#     local OPTION="$2"
+#     local VALUE="$3"
+
+#     if grep -q "$OPTION" "$CONFFILE"; then
+#         sed -i "s/^#*${OPTION}\\s*=.*/${OPTION} = ${VALUE}/g" "$CONFFILE"
+#     else
+#         echo "${OPTION} = ${VALUE}" >> "$CONFFILE"
+#     fi
+
+# }
+
+# set_mysql_option "/etc/mysql/my.cnf" bind-address 0.0.0.0
 
 for name in djangoproject code.djangoproject; do
-    mysql --username root --password="$MYSQL_ROOT_PASSWORD" <<EOSQL
-CREATE DATABASE "$name";
-GRANT ALL PRIVILEGES ON "$name" TO "$name" IDENTIFIED BY "$MYSQL_DJANGO_PASSWORD" WITH GRANT OPTION;
-EOSQL
+    mysql -u root --password="$MYSQL_ROOT_PASSWORD" \
+    --execute "CREATE DATABASE \`$name\` CHARACTER SET utf8;" \
+    --execute "use \`$name\`; CREATE USER \`$name\` IDENTIFIED BY '$MYSQL_DJANGO_PASSWORD';" \
+    --execute "use \`$name\`; GRANT ALL PRIVILEGES ON \`$name\` TO \`$name\` WITH GRANT OPTION;"
 done
-
-
-CREATE USER "djangoproject" WITH SUPERUSER NOCREATEDB NOCREATEROLE PASSWORD 'test' ;
-CREATE DATABASE "$name" OWNER "$name" ;

@@ -218,7 +218,7 @@ services:
         # Build and run container from source directory with demo django project
         build:
             context: ../../djangoproject.com/
-            dockerfile: docker/django.dockerfile
+            dockerfile: docker/pgsql_django.dockerfile
             args:
                 VCS_URL: ${COSSACKLABS_DJANGO_VCS_URL}
                 VCS_REF: ${COSSACKLABS_DJANGO_VCS_REF}

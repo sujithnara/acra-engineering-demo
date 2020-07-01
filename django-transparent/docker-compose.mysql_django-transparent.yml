@@ -103,6 +103,7 @@ services:
         networks:
             - server-mysql
             - phpmyadmin-mysql
+            - django-mysql
             - world
 
 
@@ -134,7 +135,8 @@ services:
             - ./acra-server-configs:/configs
         command: >-
             --db_host=mysql
-            --db_port=5432
+            --db_port=3306
+            --mysql_enable
             --keys_dir=/keys
             --auth_keys=/keys/httpauth.accounts
             --http_api_enable
@@ -160,7 +162,7 @@ services:
         # (connections between containers are performing within isolated
         # networks)
         ports:
-            - "9494:5432"
+            - "9494:9494"
         environment:
             ACRA_MASTER_KEY: ${ACRA_CONNECTOR_MASTER_KEY:-MElBVnhEeTd3b29JMFVVcnhGMXJPT3BxZUVwWW5wS3E=}
         # We use internal networks:
@@ -179,7 +181,7 @@ services:
             --acraserver_connection_host=acra-server
             --keys_dir=/keys
             --client_id=${ACRA_CLIENT_ID:-testclientid}
-            --incoming_connection_string=tcp://0.0.0.0:5432
+            --incoming_connection_string=tcp://0.0.0.0:9494
             --http_api_enable
             --incoming_connection_api_string=tcp://0.0.0.0:9191
             --incoming_connection_prometheus_metrics_string=tcp://0.0.0.0:9499
@@ -229,6 +231,7 @@ services:
             MYSQL_USER: ${MYSQL_USER:-test}
             MYSQL_PASSWORD: ${MYSQL_PASSWORD:-test}
             MYSQL_DJANGO_PASSWORD: ${MYSQL_DJANGO_PASSWORD:-r8d8iS3mDAYF}
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-hy53uBLmBuihUK29}
             ACRA_CLIENT_ID: ${ACRA_CLIENT_ID:-testclientid}
             DJANGO_ADMIN_LOGIN: ${DJANGO_ADMIN_LOGIN:-admin}
             DJANGO_ADMIN_PASSWORD: ${DJANGO_ADMIN_PASSWORD:-admin}
@@ -239,6 +242,7 @@ services:
         # and external network 'world' for port exposing
         networks:
             - django-connector
+            - django-mysql
             - world
 
     phpmyadmin:
@@ -315,6 +319,8 @@ networks:
     webconfig-connector:
         internal: true
     django-connector:
+        internal: true
+    django-mysql:
         internal: true
     phpmyadmin-mysql:
         internal: true

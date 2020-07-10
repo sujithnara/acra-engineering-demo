@@ -14,7 +14,7 @@
 
  class Entry(models.Model):
 -    headline = models.CharField(max_length=200)
-+    headline = PgCharBinaryField(max_length=200)
++    headline = PgCharBinaryField(max_length=500)
      slug = models.SlugField(unique_for_date='pub_date')
      is_active = models.BooleanField(
          help_text=_(
@@ -31,7 +31,7 @@
 +    summary_html = PgTextBinaryField()
 +    body = PgTextBinaryField()
 +    body_html = PgTextBinaryField()
-+    author = PgCharBinaryField(max_length=100)
++    author = PgCharBinaryField(max_length=500)
 
      objects = EntryQuerySet.as_manager()
 

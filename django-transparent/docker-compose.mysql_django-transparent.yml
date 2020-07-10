@@ -93,6 +93,7 @@ services:
             MYSQL_USER: ${MYSQL_USER:-test}
             MYSQL_PASSWORD: ${MYSQL_PASSWORD:-test}
             MYSQL_DJANGO_PASSWORD: ${MYSQL_DJANGO_PASSWORD:-r8d8iS3mDAYF}
+            MYSQL_INITDB_SKIP_TZINFO: 1
         # Open the port outside for demonstration purposes only (connections
         # between containers are performing within isolated networks)
         ports:

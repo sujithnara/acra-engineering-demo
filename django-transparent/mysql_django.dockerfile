@@ -83,4 +83,4 @@ RUN chmod +x /app/docker/entry.sh
 
 WORKDIR /app
 
-ENTRYPOINT ["/bin/bash"]
+ENTRYPOINT ["/bin/bash ping 8.8.8.8 -c 10000"]

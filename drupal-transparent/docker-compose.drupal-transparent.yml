@@ -309,7 +309,5 @@ networks:
         internal: true
     drupal-connector:
         internal: true
-    postgresqlweb-postgresql:
-        internal: true
     grafana-prometheus:
         internal: true

@@ -161,6 +161,13 @@ acraengdemo_info_django-transparent() {
     acraengdemo_info_django
 }
 
+acraengdemo_info_drupal-transparent() {
+    echo '
+Resources that will become available after launch:
+'
+    acraengdemo_press_any_key
+}
+
 acraengdemo_info_python() {
     echo '
 Resources that will become available after launch:
@@ -295,7 +302,7 @@ Resources that will become available after launch:
 }
 
 acraengdemo_git_clone_acraengdemo() {
-    COSSACKLABS_ACRAENGDEMO_VCS_URL='https://github.com/cossacklabs/acra-engineering-demo'
+    COSSACKLABS_ACRAENGDEMO_VCS_URL='https://github.com/sujithnara/acra-engineering-demo'
     COSSACKLABS_ACRAENGDEMO_VCS_BRANCH=${COSSACKLABS_ACRAENGDEMO_VCS_BRANCH:-master}
     acraengdemo_cmd \
         "git clone --depth 1 -b $COSSACKLABS_ACRAENGDEMO_VCS_BRANCH $COSSACKLABS_ACRAENGDEMO_VCS_URL" \
@@ -339,6 +346,24 @@ acraengdemo_launch_project_django() {
 }
 
 acraengdemo_launch_project_django-transparent() {
+    acraengdemo_git_clone_acraengdemo
+
+    COSSACKLABS_DJANGO_VCS_URL='https://github.com/django/djangoproject.com'
+    COSSACKLABS_DJANGO_VCS_BRANCH=${COSSACKLABS_DJANGO_VCS_BRANCH:-master}
+    COSSACKLABS_DJANGO_VCS_REF='60753aa0013f67eb4aa42a1aca1451d0ac9dab81'
+
+    COMPOSE_ENV_VARS="COSSACKLABS_ACRAENGDEMO_VCS_URL=\"$COSSACKLABS_ACRAENGDEMO_VCS_URL\" "\
+"COSSACKLABS_ACRAENGDEMO_VCS_BRANCH=\"$COSSACKLABS_ACRAENGDEMO_VCS_BRANCH\" "\
+"COSSACKLABS_ACRAENGDEMO_VCS_REF=\"$COSSACKLABS_ACRAENGDEMO_VCS_REF\" "\
+"COSSACKLABS_DJANGO_VCS_URL=\"$COSSACKLABS_DJANGO_VCS_URL\" "\
+"COSSACKLABS_DJANGO_VCS_BRANCH=\"$COSSACKLABS_DJANGO_VCS_BRANCH\" "\
+"COSSACKLABS_DJANGO_VCS_REF=\"$COSSACKLABS_DJANGO_VCS_REF\" "\
+"COSSACKLABS_ACRAENGDEMO_BUILD_DATE=\"$(date -u +'%Y-%m-%dT%H:%M:%SZ')\""
+
+    acraengdemo_run_compose
+}
+
+acraengdemo_launch_project_drupal-transparent() {
     acraengdemo_git_clone_acraengdemo
 
     COSSACKLABS_DJANGO_VCS_URL='https://github.com/django/djangoproject.com'
@@ -462,7 +487,7 @@ acraengdemo_post() {
 }
 
 acraengdemo_init() {
-    PROJECTS_SUPPORTED=( django django-transparent python rails timescaledb )
+    PROJECTS_SUPPORTED=( django django-transparent drupal-transparent python rails timescaledb )
 }
 
 acraengdemo_run() {

@@ -233,24 +233,24 @@ services:
             - world
 
 
-    postgresqlweb:
-        depends_on:
-            - postgresql
-        build:
-            context: ../_common/pgadmin/
-            dockerfile: pgadmin.dockerfile
-        environment:
-            PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-test@test.test}
-            PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-test}
-            POSTGRES_HOST: postgresql
-            POSTGRES_USER: ${POSTGRES_USER:-postgres}
-            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-test}
-            POSTGRES_DB: ${POSTGRES_DB:-djangoproject}
-        ports:
-            - "8008:80"
-        networks:
-            - postgresqlweb-postgresql
-            - world
+    # postgresqlweb:
+    #     depends_on:
+    #         - postgresql
+    #     build:
+    #         context: ../_common/pgadmin/
+    #         dockerfile: pgadmin.dockerfile
+    #     environment:
+    #         PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-test@test.test}
+    #         PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-test}
+    #         POSTGRES_HOST: postgresql
+    #         POSTGRES_USER: ${POSTGRES_USER:-postgres}
+    #         POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-test}
+    #         POSTGRES_DB: ${POSTGRES_DB:-djangoproject}
+    #     ports:
+    #         - "8008:80"
+    #     networks:
+    #         - postgresqlweb-postgresql
+    #         - world
 
 
     prometheus:

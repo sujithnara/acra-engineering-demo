@@ -1,0 +1,315 @@
+version: "3"
+
+services:
+    # Creating keys:
+    # - ./.acrakeys/acra-server/${ACRA_CLIENT_ID}_server
+    # - ./.acrakeys/acra-connector/${ACRA_CLIENT_ID}_server.pub
+    acra-keymaker_server:
+        # You can specify a docker image tag in the ACRA_DOCKER_IMAGE_TAG
+        # environment variable or run the default 'latest' images
+        image: "cossacklabs/acra-keymaker:${ACRA_DOCKER_IMAGE_TAG:-latest}"
+        # We do not need a network to generate keys at all
+        network_mode: "none"
+        environment:
+            # INSECURE!!! You MUST define your own ACRA_SERVER_MASTER_KEY and ACRA_CONNECTOR_MASTER_KEY
+            # The default is for testing purposes only
+            ACRA_MASTER_KEY: ${ACRA_SERVER_MASTER_KEY:-N0MyZEVCRGY1cHA4ODRSVHp3c3BNeGtDekxaV3BhTHI=}
+        volumes:
+            # Mount the whole ./.acrakeys directory to be able to generate keys
+            # and place them in service subdirectories
+            - ./.acrakeys:/keys
+        # Please specify ACRA_CLIENT_ID environment variable, otherwise it will
+        # be started with the default 'testclientid' client id
+        command: >-
+            --client_id=${ACRA_CLIENT_ID:-testclientid}
+            --generate_acraserver_keys
+            --keys_output_dir=/keys/acra-server
+            --keys_public_output_dir=/keys/acra-connector
+    # Creating keys:
+    # - ./.acrakeys/acra-connector/${ACRA_CLIENT_ID}
+    # - ./.acrakeys/acra-server/${ACRA_CLIENT_ID}.pub
+    acra-keymaker_connector:
+        image: "cossacklabs/acra-keymaker:${ACRA_DOCKER_IMAGE_TAG:-latest}"
+        network_mode: "none"
+        environment:
+            ACRA_MASTER_KEY: ${ACRA_CONNECTOR_MASTER_KEY:-MElBVnhEeTd3b29JMFVVcnhGMXJPT3BxZUVwWW5wS3E=}
+        volumes:
+            - ./.acrakeys:/keys
+        command: >-
+            --client_id=${ACRA_CLIENT_ID:-testclientid}
+            --generate_acraconnector_keys
+            --keys_output_dir=/keys/acra-connector
+            --keys_public_output_dir=/keys/acra-server
+    # Creating keys:
+    # - ./.acrakeys/acra-server/${ACRA_CLIENT_ID}_storage
+    # - ./.acrakeys/acra-server/${ACRA_CLIENT_ID}_storage.pub
+    # Both keys must be accessible by AcraServer in tranparent mode
+    acra-keymaker_writer:
+        image: "cossacklabs/acra-keymaker:${ACRA_DOCKER_IMAGE_TAG:-latest}"
+        network_mode: "none"
+        environment:
+            ACRA_MASTER_KEY: ${ACRA_SERVER_MASTER_KEY:-N0MyZEVCRGY1cHA4ODRSVHp3c3BNeGtDekxaV3BhTHI=}
+        volumes:
+            - ./.acrakeys:/keys
+        command: >-
+            --client_id=${ACRA_CLIENT_ID:-testclientid}
+            --generate_acrawriter_keys
+            --keys_output_dir=/keys/acra-server
+            --keys_public_output_dir=/keys/acra-server
+
+    # Creating a file with accounts for HTTP access and a key for decrypt it
+    # - ./.acrakeys/acra-server/httpauth.accounts
+    # - ./.acrakeys/acra-server/auth_key
+    acra-authmanager:
+        image: "cossacklabs/acra-authmanager:${ACRA_DOCKER_IMAGE_TAG:-latest}"
+        network_mode: "none"
+        environment:
+            ACRA_MASTER_KEY: ${ACRA_SERVER_MASTER_KEY:-N0MyZEVCRGY1cHA4ODRSVHp3c3BNeGtDekxaV3BhTHI=}
+        volumes:
+            - ./.acrakeys:/keys
+        command: >-
+            --set
+            --user=${ACRA_HTTPAUTH_USER:-test}
+            --password=${ACRA_HTTPAUTH_PASSWORD:-test}
+            --file=/keys/acra-server/httpauth.accounts
+            --keys_dir=/keys/acra-server/
+
+
+    # MySQL container
+    mysql:
+        image: mariadb:10.3
+        # INSECURE!!! You MUST define your own DB name and credentials
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-hy53uBLmBuihUK29}
+            MYSQL_DATABASE: ${MYSQL_DATABASE:-test}
+            MYSQL_USER: ${MYSQL_USER:-test}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD:-test}
+        # Open the port outside for writer
+        ports:
+            - "3306:3306"
+        # We use internal 'server-mysql' network for AcraServer and
+        # DB interconnection and external network 'world' for port exposing
+        networks:
+            - server-mysql
+            - world
+
+
+    acra-server:
+        image: "cossacklabs/acra-server:${ACRA_DOCKER_IMAGE_TAG:-latest}"
+        # Restart server after correct termination, for example after the config
+        # was changed through the API
+        restart: always
+        depends_on:
+            - acra-keymaker_server
+            - acra-keymaker_connector
+            - acra-keymaker_writer
+            - acra-authmanager
+            - mysql
+            - jaeger
+        environment:
+            ACRA_MASTER_KEY: ${ACRA_SERVER_MASTER_KEY:-N0MyZEVCRGY1cHA4ODRSVHp3c3BNeGtDekxaV3BhTHI=}
+        # We use internal networks:
+        # - 'server-mysql' - for AcraServer and DB interconnection
+        # - 'connector-server' - for AcraServer and AcraConnector interconnection
+        networks:
+            - connector-server
+            - server-mysql
+        volumes:
+            # Mount the directory with only the keys for this service. Must be
+            # rewriteable in case of using API, otherwise should be read-only.
+            - ./.acrakeys/acra-server:/keys
+            # Directory with configuration, rewriteable
+            - ./acra-server-configs:/configs
+        command: >-
+            --mysql_enable
+            --db_host=mysql
+            --db_port=3306
+            --keys_dir=/keys
+            --auth_keys=/keys/httpauth.accounts
+            --http_api_enable
+            --incoming_connection_api_string=tcp://0.0.0.0:9090
+            --incoming_connection_prometheus_metrics_string=tcp://0.0.0.0:9399
+            --config_file=/configs/acra-server.yaml
+            --encryptor_config_file=/configs/encryptor_config.yaml
+            --tracing_jaeger_enable
+            --jaeger_agent_endpoint=''
+            --jaeger_collector_endpoint=http://jaeger:14268/api/traces
+            -v
+
+
+    acra-connector:
+        image: "cossacklabs/acra-connector:${ACRA_DOCKER_IMAGE_TAG:-latest}"
+        restart: always
+        depends_on:
+            - acra-keymaker_server
+            - acra-keymaker_connector
+            - acra-server
+            - jaeger
+        # Open the port outside only for demonstration purposes only
+        # (connections between containers are performing within isolated
+        # networks)
+        ports:
+            - "9494:3306"
+        environment:
+            ACRA_MASTER_KEY: ${ACRA_CONNECTOR_MASTER_KEY:-MElBVnhEeTd3b29JMFVVcnhGMXJPT3BxZUVwWW5wS3E=}
+        # We use internal networks:
+        # - 'connector-server' - for interconnection with AcraServer
+        # - 'webconfig-connector' - for interconnection with AcraWebconfig
+        # and external network 'world' for port exposing
+        networks:
+            - connector-server
+            - webconfig-connector
+            - drupal-connector
+            - world
+        volumes:
+            # Mount the directory with only the keys for this service
+            - ./.acrakeys/acra-connector:/keys:ro
+        command: >-
+            --acraserver_connection_host=acra-server
+            --keys_dir=/keys
+            --client_id=${ACRA_CLIENT_ID:-testclientid}
+            --incoming_connection_string=tcp://0.0.0.0:3306
+            --http_api_enable
+            --incoming_connection_api_string=tcp://0.0.0.0:9191
+            --incoming_connection_prometheus_metrics_string=tcp://0.0.0.0:9499
+            --tracing_jaeger_enable
+            --jaeger_agent_endpoint=''
+            --jaeger_collector_endpoint=http://jaeger:14268/api/traces
+            -v
+
+
+    # Optional lightweight HTTP web server for managing AcraServer's
+    # certain configuration options
+    acra-webconfig:
+        image: "cossacklabs/acra-webconfig:${ACRA_DOCKER_IMAGE_TAG:-latest}"
+        restart: on-failure
+        depends_on:
+            - acra-connector
+        # Open http port
+        ports:
+            - "8001:8000"
+        # We use internal 'webconfig-connector' network for AcraConnector and
+        # AcraWebconfig interconnection and external network 'world' for
+        # port exposing
+        networks:
+            - webconfig-connector
+            - world
+        command: >-
+            --destination_host=acra-connector
+            --incoming_connection_host=0.0.0.0
+
+
+    drupal:
+        depends_on:
+            - acra-keymaker_writer
+            - acra-connector
+            - mysql
+        # Build and run container from source directory with demo django project
+        build:
+            context: ./
+            dockerfile: drupal.dockerfile
+            args:
+                VCS_URL: ${COSSACKLABS_DRUPAL_VCS_URL}
+                VCS_REF: ${COSSACKLABS_DRUPAL_VCS_REF}
+                VCS_BRANCH: ${COSSACKLABS_DRUPAL_VCS_BRANCH}
+                BUILD_DATE: ${COSSACKLABS_ACRAENGDEMO_BUILD_DATE}
+        environment:
+            # POSTGRES_HOST: acra-connector
+            MYSQL_DATABASE: ${MYSQL_DATABASE:-test}
+            MYSQL_USER: ${MYSQL_USER:-test}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD:-test}
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-hy53uBLmBuihUK29}
+            ACRA_CLIENT_ID: ${ACRA_CLIENT_ID:-testclientid}
+            DRUPAL_ADMIN_LOGIN: ${DRUPAL_ADMIN_LOGIN:-admin}
+            DRUPAL_ADMIN_PASSWORD: ${DRUPAL_ADMIN_PASSWORD:-admin}
+        # Open http port
+        ports:
+            - "8000:8000"
+        # We use internal 'drupal-connector' for access to AcraConnector
+        # and external network 'world' for port exposing
+        networks:
+            - acra-connector
+            - drupal-connector
+            - world
+
+
+    postgresqlweb:
+        depends_on:
+            - postgresql
+        build:
+            context: ../_common/pgadmin/
+            dockerfile: pgadmin.dockerfile
+        environment:
+            PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-test@test.test}
+            PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-test}
+            POSTGRES_HOST: postgresql
+            POSTGRES_USER: ${POSTGRES_USER:-postgres}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-test}
+            POSTGRES_DB: ${POSTGRES_DB:-djangoproject}
+        ports:
+            - "8008:80"
+        networks:
+            - postgresqlweb-postgresql
+            - world
+
+
+    prometheus:
+        image: prom/prometheus:v2.4.0
+        depends_on:
+            - acra-server
+            - acra-connector
+        ports:
+            - "9090:9090"
+        volumes:
+            - ../_common/prometheus:/app.cfg
+        networks:
+            - connector-server
+            - world
+        command: >-
+            --config.file=/app.cfg/prometheus.yml
+            --storage.tsdb.path=/prometheus
+            --web.console.libraries=/usr/share/prometheus/console_libraries
+            --web.console.templates=/usr/share/prometheus/consoles
+
+
+    grafana:
+        image: grafana/grafana:5.2.4
+        depends_on:
+            - prometheus
+        environment:
+            GF_AUTH_ANONYMOUS_ENABLED: !!str 'true'
+            GF_PATHS_PROVISIONING: '/app.cfg/provisioning'
+        ports:
+            - "3000:3000"
+        volumes:
+            - ../_common/grafana:/app.cfg
+        networks:
+            - grafana-prometheus
+            - world
+
+
+    jaeger:
+        image: jaegertracing/all-in-one:1.7
+        environment:
+            SPAN_STORAGE_TYPE: memory
+        ports:
+            - "16686:16686"
+        networks:
+            - connector-server
+            - world
+
+
+networks:
+    world:
+    connector-server:
+        internal: true
+    server-mysql:
+        internal: true
+    webconfig-connector:
+        internal: true
+    drupal-connector:
+        internal: true
+    postgresqlweb-postgresql:
+        internal: true
+    grafana-prometheus:
+        internal: true

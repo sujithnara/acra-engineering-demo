@@ -149,7 +149,7 @@ services:
         # (connections between containers are performing within isolated
         # networks)
         ports:
-            - "9494:3306"
+            - "9494:9494"
         environment:
             ACRA_MASTER_KEY: ${ACRA_CONNECTOR_MASTER_KEY:-MElBVnhEeTd3b29JMFVVcnhGMXJPT3BxZUVwWW5wS3E=}
         # We use internal networks:
@@ -168,7 +168,7 @@ services:
             --acraserver_connection_host=acra-server
             --keys_dir=/keys
             --client_id=${ACRA_CLIENT_ID:-testclientid}
-            --incoming_connection_string=tcp://0.0.0.0:3306
+            --incoming_connection_string=tcp://0.0.0.0:9494
             --http_api_enable
             --incoming_connection_api_string=tcp://0.0.0.0:9191
             --incoming_connection_prometheus_metrics_string=tcp://0.0.0.0:9499

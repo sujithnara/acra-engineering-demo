@@ -228,7 +228,6 @@ services:
         # We use internal 'drupal-connector' for access to AcraConnector
         # and external network 'world' for port exposing
         networks:
-            - acra-connector
             - drupal-connector
             - world
 

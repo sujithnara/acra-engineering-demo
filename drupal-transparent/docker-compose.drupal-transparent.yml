@@ -226,7 +226,7 @@ services:
         #     DRUPAL_ADMIN_PASSWORD: ${DRUPAL_ADMIN_PASSWORD:-admin}
         # Open http port
         ports:
-            - "8000:8000"
+            - "80:80"
         # We use internal 'drupal-connector' for access to AcraConnector
         # and external network 'world' for port exposing
         networks:

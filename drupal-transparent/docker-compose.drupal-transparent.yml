@@ -200,28 +200,30 @@ services:
 
 
     drupal:
+        image: drupal:7
+        restart: unless-stopped
         depends_on:
             - acra-keymaker_writer
             - acra-connector
             - mysql
         # Build and run container from source directory with demo django project
-        build:
-            context: ./
-            dockerfile: drupal.dockerfile
-            args:
-                VCS_URL: ${COSSACKLABS_DRUPAL_VCS_URL}
-                VCS_REF: ${COSSACKLABS_DRUPAL_VCS_REF}
-                VCS_BRANCH: ${COSSACKLABS_DRUPAL_VCS_BRANCH}
-                BUILD_DATE: ${COSSACKLABS_ACRAENGDEMO_BUILD_DATE}
-        environment:
-            # POSTGRES_HOST: acra-connector
-            MYSQL_DATABASE: ${MYSQL_DATABASE:-test}
-            MYSQL_USER: ${MYSQL_USER:-test}
-            MYSQL_PASSWORD: ${MYSQL_PASSWORD:-test}
-            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-hy53uBLmBuihUK29}
-            ACRA_CLIENT_ID: ${ACRA_CLIENT_ID:-testclientid}
-            DRUPAL_ADMIN_LOGIN: ${DRUPAL_ADMIN_LOGIN:-admin}
-            DRUPAL_ADMIN_PASSWORD: ${DRUPAL_ADMIN_PASSWORD:-admin}
+        # build:
+        #     context: ./
+        #     dockerfile: drupal.dockerfile
+        #     args:
+        #         VCS_URL: ${COSSACKLABS_DRUPAL_VCS_URL}
+        #         VCS_REF: ${COSSACKLABS_DRUPAL_VCS_REF}
+        #         VCS_BRANCH: ${COSSACKLABS_DRUPAL_VCS_BRANCH}
+        #         BUILD_DATE: ${COSSACKLABS_ACRAENGDEMO_BUILD_DATE}
+        # environment:
+        #     # POSTGRES_HOST: acra-connector
+        #     MYSQL_DATABASE: ${MYSQL_DATABASE:-test}
+        #     MYSQL_USER: ${MYSQL_USER:-test}
+        #     MYSQL_PASSWORD: ${MYSQL_PASSWORD:-test}
+        #     MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-hy53uBLmBuihUK29}
+        #     ACRA_CLIENT_ID: ${ACRA_CLIENT_ID:-testclientid}
+        #     DRUPAL_ADMIN_LOGIN: ${DRUPAL_ADMIN_LOGIN:-admin}
+        #     DRUPAL_ADMIN_PASSWORD: ${DRUPAL_ADMIN_PASSWORD:-admin}
         # Open http port
         ports:
             - "8000:8000"

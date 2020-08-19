@@ -1,9 +1,5 @@
 schemas:
-- table: "blog_entries"
+- table: "users"
   encrypted:
-  - column: "author"
-  - column: "body"
-  - column: "body_html"
-  - column: "headline"
-  - column: "summary"
-  - column: "summary_html"
+  - column: "mail"
+  - column: "init"

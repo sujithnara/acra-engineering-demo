@@ -1,5 +1,5 @@
 diff --git a/modules/user/user.install b/modules/user/user.install
-index 4e1a3c22..168585ec 100644
+index 4e1a3c22..3c544181 100644
 --- a/modules/user/user.install
 +++ b/modules/user/user.install
 @@ -911,3 +911,22 @@ function user_update_7018() {
@@ -11,7 +11,7 @@ index 4e1a3c22..168585ec 100644
 + /**
 + * Changes for Acra.
 + */
-+function user_update_7019() {
++function user_update_7020() {
 +  db_change_field('users', 'mail', 'mail', array(
 +    'type' => 'blob',
 +    'size' => 'normal',

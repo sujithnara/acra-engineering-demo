@@ -45,4 +45,4 @@ RUN chmod +x /app/docker/entry.sh
 
 RUN echo "Sujith3"
 
-# ENTRYPOINT ["/app/docker/entry.sh"]
+ENTRYPOINT ["/app/docker/entry.sh"]

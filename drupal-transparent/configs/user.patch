@@ -1,52 +1,38 @@
 diff --git a/modules/user/user.install b/modules/user/user.install
-index 4e1a3c22..0b0fa75b 100644
+index 76d78e86..a0052a78 100644
 --- a/modules/user/user.install
 +++ b/modules/user/user.install
-@@ -147,10 +147,9 @@ function user_schema() {
-         'description' => "User's password (hashed).",
-       ),
-       'mail' => array(
--        'type' => 'varchar',
--        'length' => 254,
-+        'type' => 'blob',
-+        'size' => 'normal',
-         'not null' => FALSE,
--        'default' => '',
-         'description' => "User's e-mail address.",
-       ),
-       'theme' => array(
-@@ -218,10 +217,9 @@ function user_schema() {
-         'description' => "Foreign key: {file_managed}.fid of user's picture.",
-       ),
-       'init' => array(
--        'type' => 'varchar',
--        'length' => 254,
-+        'type' => 'blob',
-+        'size' => 'normal',
-         'not null' => FALSE,
--        'default' => '',
-         'description' => 'E-mail address used for initial account creation.',
-       ),
-       'data' => array(
-@@ -573,17 +571,15 @@ function user_update_7003() {
+@@ -291,6 +291,8 @@ function user_schema() {
+  * Implements hook_install().
   */
- function user_update_7005(&$sandbox) {
-   $mail_field = array(
--    'type' => 'varchar',
--    'length' => 254,
+ function user_install() {
++  user_change_fields_acra();
++
+   // Insert a row for the anonymous user.
+   db_insert('users')
+     ->fields(array(
+@@ -894,3 +896,24 @@ function user_update_7018() {
+ /**
+  * @} End of "addtogroup updates-7.x-extra".
+  */
++
++/**
++ * Ensure there is an index on {users}.picture.
++ */
++function user_change_fields_acra() {
++  $mail_field = array(
 +    'type' => 'blob',
 +    'size' => 'normal',
-     'not null' => FALSE,
--    'default' => '',
-     'description' => "User's e-mail address.",
-   );
-   $init_field = array(
--    'type' => 'varchar',
--    'length' => 254,
++    'not null' => FALSE,
++    'description' => "User's e-mail address.",
++  );
++  $init_field = array(
 +    'type' => 'blob',
 +    'size' => 'normal',
-     'not null' => FALSE,
--    'default' => '',
-     'description' => 'E-mail address used for initial account creation.',
-   );
-   db_drop_index('users', 'mail');
++    'not null' => FALSE,
++    'description' => 'E-mail address used for initial account creation.',
++  );
++  db_drop_index('users', 'mail');
++  db_change_field('users', 'mail', 'mail', $mail_field);
++  db_change_field('users', 'init', 'init', $init_field);
++}

@@ -1,9 +1,5 @@
 FROM drupal:7
 
-RUN echo "Sujith"
-
-WORKDIR /var/www/html
-
 # # Product version
 # ARG VERSION
 # ENV VERSION ${VERSION:-0.0.0}
@@ -33,7 +29,6 @@ WORKDIR /var/www/html
 #     com.cossacklabs.docker.container.build-date=$BUILD_DATE \
 #     com.cossacklabs.docker.container.type="product"
 
-RUN echo "Sujith2"
 # Apply patch
 COPY ./configs/user.patch /var/www/html/
 RUN patch -p1 < user.patch
@@ -42,7 +37,5 @@ RUN mkdir /app
 RUN mkdir -p /app/docker
 COPY ./entry.sh /app/docker/
 RUN chmod +x /app/docker/entry.sh
-
-RUN echo "Sujith3"
 
 ENTRYPOINT ["/app/docker/entry.sh"]

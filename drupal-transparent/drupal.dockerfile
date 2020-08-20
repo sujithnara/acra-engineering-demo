@@ -38,4 +38,4 @@ RUN mkdir -p /app/docker
 COPY ./entry.sh /app/docker/
 RUN chmod +x /app/docker/entry.sh
 
-ENTRYPOINT ["/app/docker/entry.sh"]
+# ENTRYPOINT ["/app/docker/entry.sh"]

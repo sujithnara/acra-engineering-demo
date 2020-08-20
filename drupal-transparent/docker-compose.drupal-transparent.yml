@@ -75,6 +75,25 @@ services:
             --keys_dir=/keys/acra-server/
 
 
+    # MySQL container
+    mysql:
+        image: mariadb:10.3
+        # INSECURE!!! You MUST define your own DB name and credentials
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-hy53uBLmBuihUK29}
+            MYSQL_DATABASE: ${MYSQL_DATABASE:-test}
+            MYSQL_USER: ${MYSQL_USER:-test}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD:-test}
+        # Open the port outside for writer
+        ports:
+            - "3306:3306"
+        # We use internal 'server-mysql' network for AcraServer and
+        # DB interconnection and external network 'world' for port exposing
+        networks:
+            - server-mysql
+            - world
+
+
     acra-server:
         image: "cossacklabs/acra-server:${ACRA_DOCKER_IMAGE_TAG:-latest}"
         # Restart server after correct termination, for example after the config
@@ -185,18 +204,17 @@ services:
             - acra-keymaker_writer
             - acra-connector
             - mysql
-        stdin_open: true
-        tty: true
-        # Build and run container from source directory with demo drupal project
+        # Build and run container from source directory with demo django project
         build:
             context: ./
             dockerfile: drupal.dockerfile
-            # args:
-            #     VCS_URL: ${COSSACKLABS_DRUPAL_VCS_URL}
-            #     VCS_REF: ${COSSACKLABS_DRUPAL_VCS_REF}
-            #     VCS_BRANCH: ${COSSACKLABS_DRUPAL_VCS_BRANCH}
-            #     BUILD_DATE: ${COSSACKLABS_ACRAENGDEMO_BUILD_DATE}
+        #     args:
+        #         VCS_URL: ${COSSACKLABS_DRUPAL_VCS_URL}
+        #         VCS_REF: ${COSSACKLABS_DRUPAL_VCS_REF}
+        #         VCS_BRANCH: ${COSSACKLABS_DRUPAL_VCS_BRANCH}
+        #         BUILD_DATE: ${COSSACKLABS_ACRAENGDEMO_BUILD_DATE}
         # environment:
+        #     # POSTGRES_HOST: acra-connector
         #     MYSQL_DATABASE: ${MYSQL_DATABASE:-test}
         #     MYSQL_USER: ${MYSQL_USER:-test}
         #     MYSQL_PASSWORD: ${MYSQL_PASSWORD:-test}
@@ -211,27 +229,6 @@ services:
         # and external network 'world' for port exposing
         networks:
             - drupal-connector
-            - world
-
-
-    # MySQL container
-    mysql:
-        image: mariadb:10.3
-        stdin_open: true
-        tty: true
-        # INSECURE!!! You MUST define your own DB name and credentials
-        environment:
-            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-hy53uBLmBuihUK29}
-            MYSQL_DATABASE: ${MYSQL_DATABASE:-test}
-            MYSQL_USER: ${MYSQL_USER:-test}
-            MYSQL_PASSWORD: ${MYSQL_PASSWORD:-test}
-        # Open the port outside for writer
-        ports:
-            - "3306:3306"
-        # We use internal 'server-mysql' network for AcraServer and
-        # DB interconnection and external network 'world' for port exposing
-        networks:
-            - server-mysql
             - world
 
 

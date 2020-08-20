@@ -1,5 +1,5 @@
 diff --git a/modules/user/user.install b/modules/user/user.install
-index 4e1a3c22..b20b468e 100644
+index 4e1a3c22..84ecdaf4 100644
 --- a/modules/user/user.install
 +++ b/modules/user/user.install
 @@ -147,10 +147,9 @@ function user_schema() {
@@ -28,3 +28,70 @@ index 4e1a3c22..b20b468e 100644
          'description' => 'E-mail address used for initial account creation.',
        ),
        'data' => array(
+@@ -235,7 +233,7 @@ function user_schema() {
+     'indexes' => array(
+       'access' => array('access'),
+       'created' => array('created'),
+-      'mail' => array('mail'),
++      // 'mail' => array('mail'),
+       'picture' => array('picture'),
+     ),
+     'unique keys' => array(
+@@ -292,27 +290,27 @@ function user_schema() {
+  */
+ function user_install() {
+   // Insert a row for the anonymous user.
+-  db_insert('users')
+-    ->fields(array(
+-      'uid' => 0,
+-      'name' => '',
+-      'mail' => '',
+-    ))
+-    ->execute();
++  // db_insert('users')
++  //   ->fields(array(
++  //     'uid' => 0,
++  //     'name' => '',
++  //     'mail' => '',
++  //   ))
++  //   ->execute();
+ 
+   // We need some placeholders here as name and mail are uniques and data is
+   // presumed to be a serialized array. This will be changed by the settings
+   // form in the installer.
+-  db_insert('users')
+-    ->fields(array(
+-      'uid' => 1,
+-      'name' => 'placeholder-for-uid-1',
+-      'mail' => 'placeholder-for-uid-1',
+-      'created' => REQUEST_TIME,
+-      'status' => 1,
+-      'data' => NULL,
+-    ))
+-    ->execute();
++  // db_insert('users')
++  //   ->fields(array(
++  //     'uid' => 1,
++  //     'name' => 'placeholder-for-uid-1',
++  //     'mail' => 'placeholder-for-uid-1',
++  //     'created' => REQUEST_TIME,
++  //     'status' => 1,
++  //     'data' => NULL,
++  //   ))
++  //   ->execute();
+ 
+   // Built-in roles.
+   $rid_anonymous = db_insert('role')
+@@ -586,9 +584,9 @@ function user_update_7005(&$sandbox) {
+     'default' => '',
+     'description' => 'E-mail address used for initial account creation.',
+   );
+-  db_drop_index('users', 'mail');
+-  db_change_field('users', 'mail', 'mail', $mail_field, array('indexes' => array('mail' => array('mail'))));
+-  db_change_field('users', 'init', 'init', $init_field);
++  // db_drop_index('users', 'mail');
++  // db_change_field('users', 'mail', 'mail', $mail_field, array('indexes' => array('mail' => array('mail'))));
++  // db_change_field('users', 'init', 'init', $init_field);
+ }
+ 
+ /**

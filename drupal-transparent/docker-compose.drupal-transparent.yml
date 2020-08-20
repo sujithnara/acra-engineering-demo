@@ -185,6 +185,8 @@ services:
             - acra-keymaker_writer
             - acra-connector
             - mysql
+        stdin_open: true
+        tty: true
         # Build and run container from source directory with demo drupal project
         build:
             context: .

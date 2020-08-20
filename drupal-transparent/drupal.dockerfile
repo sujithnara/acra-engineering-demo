@@ -33,9 +33,9 @@ FROM drupal:7
 COPY ./configs/user.patch /var/www/html/
 RUN patch -p1 < user.patch
 
-RUN mkdir /app
-RUN mkdir -p /app/docker
-COPY ./entry.sh /app/docker/
-RUN chmod +x /app/docker/entry.sh
+# RUN mkdir /app
+# RUN mkdir -p /app/docker
+# COPY ./entry.sh /app/docker/
+# RUN chmod +x /app/docker/entry.sh
 
-ENTRYPOINT ["/app/docker/entry.sh"]
+# ENTRYPOINT ["/app/docker/entry.sh"]

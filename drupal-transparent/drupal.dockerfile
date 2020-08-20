@@ -29,11 +29,13 @@ LABEL org.label-schema.schema-version="1.0" \
     com.cossacklabs.docker.container.build-date=$BUILD_DATE \
     com.cossacklabs.docker.container.type="product"
 
+# Apply patch
+COPY ./configs/user.patch /var/www/html/
+RUN patch -p1 < user.patch
 
 RUN mkdir /app
 RUN mkdir -p /app/docker
 COPY ./entry.sh /app/docker/
 RUN chmod +x /app/docker/entry.sh
 
-WORKDIR /app
 ENTRYPOINT ["/app/docker/entry.sh"]

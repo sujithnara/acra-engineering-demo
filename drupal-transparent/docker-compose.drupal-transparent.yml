@@ -185,9 +185,9 @@ services:
             - acra-keymaker_writer
             - acra-connector
             - mysql
-        # Build and run container from source directory with demo django project
+        # Build and run container from source directory with demo drupal project
         build:
-            context: ./
+            context: .
             dockerfile: drupal.dockerfile
             args:
                 VCS_URL: ${COSSACKLABS_DRUPAL_VCS_URL}
@@ -195,7 +195,6 @@ services:
                 VCS_BRANCH: ${COSSACKLABS_DRUPAL_VCS_BRANCH}
                 BUILD_DATE: ${COSSACKLABS_ACRAENGDEMO_BUILD_DATE}
         environment:
-            # POSTGRES_HOST: acra-connector
             MYSQL_DATABASE: ${MYSQL_DATABASE:-test}
             MYSQL_USER: ${MYSQL_USER:-test}
             MYSQL_PASSWORD: ${MYSQL_PASSWORD:-test}

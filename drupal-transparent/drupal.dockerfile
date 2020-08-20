@@ -29,7 +29,7 @@ LABEL org.label-schema.schema-version="1.0" \
     com.cossacklabs.product.version=$VERSION \
     com.cossacklabs.product.vcs-ref=$VCS_REF \
     com.cossacklabs.product.vcs-branch=$VCS_BRANCH \
-    com.cossacklabs.product.component="acra-engdemo-django-transparent-drupalproject" \
+    com.cossacklabs.product.component="acra-engdemo-drupal-transparent-drupalproject" \
     com.cossacklabs.docker.container.build-date=$BUILD_DATE \
     com.cossacklabs.docker.container.type="product"
 

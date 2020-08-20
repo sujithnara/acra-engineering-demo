@@ -1,8 +1,34 @@
 diff --git a/modules/user/user.install b/modules/user/user.install
-index 4e1a3c22..32dbee22 100644
+index 4e1a3c22..0b0fa75b 100644
 --- a/modules/user/user.install
 +++ b/modules/user/user.install
-@@ -573,17 +573,15 @@ function user_update_7003() {
+@@ -147,10 +147,9 @@ function user_schema() {
+         'description' => "User's password (hashed).",
+       ),
+       'mail' => array(
+-        'type' => 'varchar',
+-        'length' => 254,
++        'type' => 'blob',
++        'size' => 'normal',
+         'not null' => FALSE,
+-        'default' => '',
+         'description' => "User's e-mail address.",
+       ),
+       'theme' => array(
+@@ -218,10 +217,9 @@ function user_schema() {
+         'description' => "Foreign key: {file_managed}.fid of user's picture.",
+       ),
+       'init' => array(
+-        'type' => 'varchar',
+-        'length' => 254,
++        'type' => 'blob',
++        'size' => 'normal',
+         'not null' => FALSE,
+-        'default' => '',
+         'description' => 'E-mail address used for initial account creation.',
+       ),
+       'data' => array(
+@@ -573,17 +571,15 @@ function user_update_7003() {
   */
  function user_update_7005(&$sandbox) {
    $mail_field = array(

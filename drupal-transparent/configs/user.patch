@@ -1,27 +1,26 @@
 diff --git a/modules/user/user.install b/modules/user/user.install
-index 4e1a3c22..3c544181 100644
+index 4e1a3c22..32dbee22 100644
 --- a/modules/user/user.install
 +++ b/modules/user/user.install
-@@ -911,3 +911,22 @@ function user_update_7018() {
- /**
-  * @} End of "addtogroup updates-7.x-extra".
+@@ -573,17 +573,15 @@ function user_update_7003() {
   */
-+
-+
-+ /**
-+ * Changes for Acra.
-+ */
-+function user_update_7020() {
-+  db_change_field('users', 'mail', 'mail', array(
+ function user_update_7005(&$sandbox) {
+   $mail_field = array(
+-    'type' => 'varchar',
+-    'length' => 254,
 +    'type' => 'blob',
 +    'size' => 'normal',
-+    'not null' => FALSE,
-+    'description' => "User's e-mail address.",
-+  ));
-+  db_change_field('users', 'init', 'init', array(
+     'not null' => FALSE,
+-    'default' => '',
+     'description' => "User's e-mail address.",
+   );
+   $init_field = array(
+-    'type' => 'varchar',
+-    'length' => 254,
 +    'type' => 'blob',
 +    'size' => 'normal',
-+    'not null' => FALSE,
-+    'description' => "User's e-mail address.",
-+  ));
-+}
+     'not null' => FALSE,
+-    'default' => '',
+     'description' => 'E-mail address used for initial account creation.',
+   );
+   db_drop_index('users', 'mail');
